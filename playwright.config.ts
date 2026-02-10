@@ -11,8 +11,8 @@ const config: PlaywrightTestConfig = {
           apiVersion: "1.0",
         },
         cloud: {
-          client_id: "",
-          client_secret: "",
+          client_id: "kljlkjlkj",
+          client_secret: "lkjkljkl",
         },
         server: {
           token: "",
@@ -24,6 +24,7 @@ const config: PlaywrightTestConfig = {
         uploadVideo: true,
         projectKey: "CODE",
         testPlan: "CODE-1820",
+        dryRun: true
       },
     ],
   ],

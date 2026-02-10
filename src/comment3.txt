@@ -1,0 +1,51 @@
+Iteration 1: [{"message":"Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: false
+Received: true","stack":"Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: false
+Received: true
+    at /home/pw/tests/example.spec.ts:8:16","location":{"file":"/home/pw/tests/example.spec.ts","column":16,"line":8}
+{code:JavaScript|title=Error|borderStyle=solid}
+snippet->
+   6 |
+   7 | test('fails', async ({  }) => {
+>  8 |   expect(true).toBe(false);
+     |                ^
+   9 | });
+  10 |"}]
+<-snippet{code}
+Iteration 2: [{"message":"Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: false
+Received: true","stack":"Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: false
+Received: true
+    at /home/pw/tests/example.spec.ts:8:16","location":{"file":"/home/pw/tests/example.spec.ts","column":16,"line":8}
+{code:JavaScript|title=Error|borderStyle=solid}
+snippet->
+   6 |
+   7 | test('fails', async ({  }) => {
+>  8 |   expect(true).toBe(false);
+     |                ^
+   9 | });
+  10 |"}]
+<-snippet{code}
+Iteration 3: [{"message":"Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: false
+Received: true","stack":"Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: false
+Received: true
+    at /home/pw/tests/example.spec.ts:8:16","location":{"file":"/home/pw/tests/example.spec.ts","column":16,"line":8}
+{code:JavaScript|title=Error|borderStyle=solid}
+snippet->
+   6 |
+   7 | test('fails', async ({  }) => {
+>  8 |   expect(true).toBe(false);
+     |                ^
+   9 | });
+  10 |"}]
+<-snippet{code}
