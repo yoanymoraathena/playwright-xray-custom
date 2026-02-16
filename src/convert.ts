@@ -149,7 +149,7 @@ function getComment(result: TestResult) {
     const comment = stripAnsi(JSON.stringify(result.errors).replace(/\\\\/g, "\\"));
     // Add Line breaks properly for the Xray comment field
     const commentWithLineBreaks = comment.replace(/\\n/g, "\n");
-    const formatSnippet = `${commentWithLineBreaks.replace(",\"snippet\":\"", "\n{code:JavaScript|title=Error|borderStyle=solid}\nsnippet->\n")}\n<-snippet{code}`;
+    const formatSnippet = `${commentWithLineBreaks.replace(',"snippet":"', "\n{code:JavaScript|title=Error|borderStyle=solid}\nsnippet->\n")}\n<-snippet{code}`;
     return formatSnippet;
   }
   return undefined;
