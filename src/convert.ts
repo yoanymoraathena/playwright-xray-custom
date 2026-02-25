@@ -146,7 +146,11 @@ function getIterationStatus(status: TestStatus, options: ConversionOptions) {
 
 function getComment(result: TestResult) {
   if (result.errors.length > 0) {
-    return stripAnsi(JSON.stringify(result.errors).replace(/\\\\/g, "\\"));
+    const comment = stripAnsi(JSON.stringify(result.errors).replace(/\\\\/g, "\\"));
+    // Add Line breaks properly for the Xray comment field
+    const commentWithLineBreaks = comment.replace(/\\n/g, "\n");
+    const formatSnippet = `${commentWithLineBreaks.replace(',"snippet":"', "\n{code:JavaScript|title=Error|borderStyle=solid}\nsnippet->\n")}\n<-snippet{code}`;
+    return formatSnippet;
   }
   return undefined;
 }

@@ -1,0 +1,46 @@
+[{"message":"Error: Expected to see 24 sessions with Upload Time selected
+
+Timed out 5000ms waiting for expect(locator).toHaveCount(expected)
+
+Locator: locator('[class=\"w-full mb-6\"]').getByText(/.14././)
+Expected: 24
+Received: 0
+Call log:
+ - Expected to see 24 sessions with Upload Time selected with timeout 5000ms
+ - waiting for locator('[class=\"w-full mb-6\"]').getByText(/.*14././)
+ 9 × locator resolved to 0 elements
+ - unexpected value \"0\"
+","stack":"Error: Expected to see 24 sessions with Upload Time selected
+
+Timed out 5000ms waiting for expect(locator).toHaveCount(expected)
+
+Locator: locator('[class=\"w-full mb-6\"]').getByText(/.*14././)
+Expected: 24
+Received: 0
+Call log:
+ - Expected to see 24 sessions with Upload Time selected with timeout 5000ms
+ - waiting for locator('[class=\"w-full mb-6\"]').getByText(/.*14././)
+ 9 × locator resolved to 0 elements
+ - unexpected value \"0\"
+
+ at /home/runner/work/qa-automation-ui/qa-automation-ui/fitConsole/tests/allSessionsPageTest.spec.ts:271:139\",\"matcherResult\":{\"actual\":0,\"expected\":24,\"message\":\"Timed out 5000ms waiting for expect(locator).toHaveCount(expected)
+
+Locator: locator('[class=\\"w-full mb-6\\"]').getByText(/.*14././)
+Expected: 24
+Received: 0
+Call log:
+ - Expected to see 24 sessions with Upload Time selected with timeout 5000ms
+ - waiting for locator('[class=\\"w-full mb-6\\"]').getByText(/.*14././)
+ 9 × locator resolved to 0 elements
+ - unexpected value \\"0\\"
+\",\"name\":\"toHaveCount\",\"pass\":false,\"log\":[\" - Expected to see 24 sessions with Upload Time selected with timeout 5000ms\",\" - waiting for locator('[class=\\"w-full mb-6\\"]').getByText(/.*14././)\",\" 9 × locator resolved to 0 elements\",\" - unexpected value \\"0\\"\"],\"timeout\":5000}","location":{"file":"/home/runner/work/qa-automation-ui/qa-automation-ui/fitConsole/tests/allSessionsPageTest.spec.ts","column":139,"line":271}
+{code:JavaScript|title=Error|borderStyle=solid}
+snippet->
+269 | await allSessionsAllFiltersPage.applyFiltersButton.click();
+ 270 | await page.waitForRequest(\"//api/v1/health/state/all\");
+> 271 | await expect(allSessionsPage.sessionTable.getByText(date.expectedRegex), Expected to see 24 sessions with Upload Time selected).toHaveCount(24);
+ | ^
+ 272 | }
+ 273 | 
+ 274 | });\"}]"}]
+<-snippet{code}

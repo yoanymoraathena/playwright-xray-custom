@@ -1,7 +1,8 @@
 import assert from "node:assert";
+import fs from "node:fs";
 import { describe, it } from "node:test";
 import type { TestResult } from "@playwright/test/reporter";
-import { convertToXrayJson } from "./convert";
+import { convertToXrayJson } from "./convert.ts";
 
 describe(convertToXrayJson.name, async () => {
   await it("single test", async () => {
@@ -64,28 +65,174 @@ describe(convertToXrayJson.name, async () => {
         steps: [],
       },
     ]);
-    assert.deepStrictEqual(
-      await convertToXrayJson(map, {
-        jiraType: "server",
-        receivedRegEx: /Received string: "(.*?)"(?=\n)/,
-        stepCategories: ["expect", "pw:api", "test.step"],
-        uploadTrace: true,
-      }),
-      [
-        {
-          testKey: "ABC-123",
-          status: "PASS",
-          start: "2024-12-05T18:10:51+01:00",
-          finish: "2024-12-05T18:10:51+01:00",
-          evidences: [{ data: "aGVsbG8gd29ybGQ=", contentType: "text/plain", filename: "text-attachment.txt" }],
-          steps: [],
-          comment: undefined,
-        },
-      ],
-    );
+    const val = await convertToXrayJson(map, {
+      jiraType: "server",
+      receivedRegEx: /Received string: "(.*?)"(?=\n)/,
+      stepCategories: ["expect", "pw:api", "test.step"],
+      uploadTrace: true,
+    });
+
+    assert.deepStrictEqual(val, [
+      {
+        testKey: "ABC-123",
+        status: "PASS",
+        start: "2024-12-05T18:10:51+01:00",
+        finish: "2024-12-05T18:10:51+01:00",
+        evidences: [{ data: "aGVsbG8gd29ybGQ=", contentType: "text/plain", filename: "text-attachment.txt" }],
+        steps: [],
+        comment: undefined,
+      },
+    ]);
+  });
+
+  await it("Single test of comment formatting", async () => {
+    const expectedComment = fs.readFileSync("./src/comment.txt", "utf-8");
+    const map = new Map<string, TestResult[]>();
+    map.set("ABC-123", [
+      {
+        retry: 0,
+        parallelIndex: 0,
+        workerIndex: 4,
+        duration: 14,
+        startTime: new Date("2024-12-05T17:10:51.192Z"),
+        stdout: [],
+        stderr: [],
+        attachments: [],
+        status: "failed",
+        errors: [
+          {
+            message:
+              'Error: Expected to see 24 sessions with Upload Time selected\n\nTimed out 5000ms waiting for expect(locator).toHaveCount(expected)\n\nLocator: locator(\'[class="w-full mb-6"]\').getByText(/.14././)\nExpected: 24\nReceived: 0\nCall log:\n - Expected to see 24 sessions with Upload Time selected with timeout 5000ms\n - waiting for locator(\'[class="w-full mb-6"]\').getByText(/.*14././)\n 9 × locator resolved to 0 elements\n - unexpected value "0"\n',
+            stack:
+              'Error: Expected to see 24 sessions with Upload Time selected\n\nTimed out 5000ms waiting for expect(locator).toHaveCount(expected)\n\nLocator: locator(\'[class="w-full mb-6"]\').getByText(/.*14././)\nExpected: 24\nReceived: 0\nCall log:\n - Expected to see 24 sessions with Upload Time selected with timeout 5000ms\n - waiting for locator(\'[class="w-full mb-6"]\').getByText(/.*14././)\n 9 × locator resolved to 0 elements\n - unexpected value "0"\n\n at /home/runner/work/qa-automation-ui/qa-automation-ui/fitConsole/tests/allSessionsPageTest.spec.ts:271:139","matcherResult":{"actual":0,"expected":24,"message":"Timed out 5000ms waiting for expect(locator).toHaveCount(expected)\n\nLocator: locator(\'[class=\\"w-full mb-6\\"]\').getByText(/.*14././)\nExpected: 24\nReceived: 0\nCall log:\n - Expected to see 24 sessions with Upload Time selected with timeout 5000ms\n - waiting for locator(\'[class=\\"w-full mb-6\\"]\').getByText(/.*14././)\n 9 × locator resolved to 0 elements\n - unexpected value \\"0\\"\n","name":"toHaveCount","pass":false,"log":[" - Expected to see 24 sessions with Upload Time selected with timeout 5000ms"," - waiting for locator(\'[class=\\"w-full mb-6\\"]\').getByText(/.*14././)"," 9 × locator resolved to 0 elements"," - unexpected value \\"0\\""],"timeout":5000}',
+            location: {
+              file: "/home/runner/work/qa-automation-ui/qa-automation-ui/fitConsole/tests/allSessionsPageTest.spec.ts",
+              column: 139,
+              line: 271,
+            },
+            snippet:
+              '269 | await allSessionsAllFiltersPage.applyFiltersButton.click();\\n 270 | await page.waitForRequest("//api/v1/health/state/all");\\n> 271 | await expect(allSessionsPage.sessionTable.getByText(date.expectedRegex), Expected to see 24 sessions with Upload Time selected).toHaveCount(24);\\n | ^\\n 272 | }\\n 273 | \\n 274 | });"}]',
+          },
+        ],
+        steps: [],
+      },
+    ]);
+    const expected = [
+      {
+        status: "FAIL",
+        testKey: "ABC-123",
+        evidences: [],
+        start: "2024-12-05T18:10:51+01:00",
+        finish: "2024-12-05T18:10:51+01:00",
+        comment: expectedComment,
+        steps: [],
+      },
+    ];
+    const actual = await convertToXrayJson(map, {
+      jiraType: "server",
+      receivedRegEx: /Received string: "(.*?)"(?=\n)/,
+      stepCategories: ["expect", "pw:api", "test.step"],
+      uploadTrace: true,
+    });
+
+    assert.deepStrictEqual(actual, expected);
+  });
+
+  await it("Data driven test of comment formatting", async () => {
+    const expectedComment = `Iteration 2: ${fs.readFileSync("./src/comment.txt", "utf-8")}`;
+    const map = new Map<string, TestResult[]>();
+    map.set("ABC-123", [
+      {
+        status: "passed",
+        attachments: [],
+        duration: 1000,
+        errors: [],
+        parallelIndex: 0,
+        retry: 0,
+        startTime: new Date(0),
+        stderr: [],
+        stdout: [],
+        steps: [],
+        workerIndex: 0,
+      },
+      {
+        retry: 0,
+        parallelIndex: 0,
+        workerIndex: 4,
+        duration: 14,
+        startTime: new Date("2024-12-05T17:10:51.192Z"),
+        stdout: [],
+        stderr: [],
+        attachments: [
+          {
+            name: "trace",
+            path: "./tests/resources/text-attachment.txt",
+            contentType: "text/plain",
+          },
+        ],
+        status: "failed",
+        errors: [
+          {
+            message:
+              'Error: Expected to see 24 sessions with Upload Time selected\n\nTimed out 5000ms waiting for expect(locator).toHaveCount(expected)\n\nLocator: locator(\'[class="w-full mb-6"]\').getByText(/.14././)\nExpected: 24\nReceived: 0\nCall log:\n - Expected to see 24 sessions with Upload Time selected with timeout 5000ms\n - waiting for locator(\'[class="w-full mb-6"]\').getByText(/.*14././)\n 9 × locator resolved to 0 elements\n - unexpected value "0"\n',
+            stack:
+              'Error: Expected to see 24 sessions with Upload Time selected\n\nTimed out 5000ms waiting for expect(locator).toHaveCount(expected)\n\nLocator: locator(\'[class="w-full mb-6"]\').getByText(/.*14././)\nExpected: 24\nReceived: 0\nCall log:\n - Expected to see 24 sessions with Upload Time selected with timeout 5000ms\n - waiting for locator(\'[class="w-full mb-6"]\').getByText(/.*14././)\n 9 × locator resolved to 0 elements\n - unexpected value "0"\n\n at /home/runner/work/qa-automation-ui/qa-automation-ui/fitConsole/tests/allSessionsPageTest.spec.ts:271:139","matcherResult":{"actual":0,"expected":24,"message":"Timed out 5000ms waiting for expect(locator).toHaveCount(expected)\n\nLocator: locator(\'[class=\\"w-full mb-6\\"]\').getByText(/.*14././)\nExpected: 24\nReceived: 0\nCall log:\n - Expected to see 24 sessions with Upload Time selected with timeout 5000ms\n - waiting for locator(\'[class=\\"w-full mb-6\\"]\').getByText(/.*14././)\n 9 × locator resolved to 0 elements\n - unexpected value \\"0\\"\n","name":"toHaveCount","pass":false,"log":[" - Expected to see 24 sessions with Upload Time selected with timeout 5000ms"," - waiting for locator(\'[class=\\"w-full mb-6\\"]\').getByText(/.*14././)"," 9 × locator resolved to 0 elements"," - unexpected value \\"0\\""],"timeout":5000}',
+            location: {
+              file: "/home/runner/work/qa-automation-ui/qa-automation-ui/fitConsole/tests/allSessionsPageTest.spec.ts",
+              column: 139,
+              line: 271,
+            },
+            snippet:
+              '269 | await allSessionsAllFiltersPage.applyFiltersButton.click();\\n 270 | await page.waitForRequest("//api/v1/health/state/all");\\n> 271 | await expect(allSessionsPage.sessionTable.getByText(date.expectedRegex), Expected to see 24 sessions with Upload Time selected).toHaveCount(24);\\n | ^\\n 272 | }\\n 273 | \\n 274 | });"}]',
+          },
+        ],
+        steps: [],
+      },
+    ]);
+
+    const expected = [
+      {
+        status: "PASS",
+        testKey: "ABC-123",
+        evidences: [{ data: "aGVsbG8gd29ybGQ=", filename: "iteration_2_text-attachment.txt", contentType: "text/plain" }],
+        iterations: [
+          {
+            status: "PASS",
+            parameters: [
+              {
+                name: "iteration",
+                value: "1",
+              },
+            ],
+            steps: [],
+          },
+          {
+            status: "FAIL",
+            parameters: [
+              {
+                name: "iteration",
+                value: "2",
+              },
+            ],
+            steps: [],
+          },
+        ],
+        start: "1970-01-01T01:00:00+01:00",
+        finish: "2024-12-05T18:10:51+01:00",
+        comment: expectedComment,
+      },
+    ];
+    const actual = await convertToXrayJson(map, {
+      jiraType: "server",
+      receivedRegEx: /Received string: "(.*?)"(?=\n)/,
+      stepCategories: ["expect", "pw:api", "test.step"],
+      uploadTrace: true,
+    });
+    assert.deepStrictEqual(actual, expected);
   });
 
   await it("single data-driven test", async () => {
+    const expectedComment = fs.readFileSync("./src/comment2.txt", "utf-8");
     const map = new Map<string, TestResult[]>();
     map.set("ABC-123", [
       {
@@ -129,27 +276,27 @@ describe(convertToXrayJson.name, async () => {
         workerIndex: 0,
       },
     ]);
-    assert.deepStrictEqual(
-      await convertToXrayJson(map, {
-        jiraType: "server",
-        receivedRegEx: /Received string: "(.*?)"(?=\n)/,
-        stepCategories: ["expect", "pw:api", "test.step"],
-      }),
-      [
-        {
-          testKey: "ABC-123",
-          status: "PASS",
-          start: "1970-01-01T01:00:00+01:00",
-          finish: "1970-01-01T01:00:05+01:00",
-          iterations: [
-            { parameters: [{ name: "iteration", value: "1" }], status: "PASS", steps: [] },
-            { parameters: [{ name: "iteration", value: "2" }], status: "FAIL", steps: [] },
-          ],
-          evidences: [],
-          comment: `Iteration 2: [{"message":"Error: expect(received).toBe(expected) // Object.is equality\\n\\nExpected: false\\nReceived: true","stack":"Error: expect(received).toBe(expected) // Object.is equality\\n\\nExpected: false\\nReceived: true\\n    at /home/pw/tests/example.spec.ts:8:16","location":{"file":"/home/pw/tests/example.spec.ts","column":16,"line":8},"snippet":"   6 |\\n   7 | test('fails', async ({  }) => {\\n>  8 |   expect(true).toBe(false);\\n     |                ^\\n   9 | });\\n  10 |"}]`,
-        },
-      ],
-    );
+    const actual = await convertToXrayJson(map, {
+      jiraType: "server",
+      receivedRegEx: /Received string: "(.*?)"(?=\n)/,
+      stepCategories: ["expect", "pw:api", "test.step"],
+    });
+
+    const expected = [
+      {
+        status: "PASS",
+        testKey: "ABC-123",
+        evidences: [],
+        iterations: [
+          { status: "PASS", parameters: [{ name: "iteration", value: "1" }], steps: [] },
+          { status: "FAIL", parameters: [{ name: "iteration", value: "2" }], steps: [] },
+        ],
+        start: "1970-01-01T01:00:00+01:00",
+        finish: "1970-01-01T01:00:05+01:00",
+        comment: expectedComment,
+      },
+    ];
+    assert.deepStrictEqual(expected, actual);
   });
 
   await it("single data-driven test with iteration parameters", async () => {
@@ -194,47 +341,48 @@ describe(convertToXrayJson.name, async () => {
         workerIndex: 0,
       },
     ]);
-    assert.deepStrictEqual(
-      await convertToXrayJson(map, {
-        jiraType: "server",
-        receivedRegEx: /Received string: "(.*?)"(?=\n)/,
-        stepCategories: ["expect", "pw:api", "test.step"],
-      }),
-      [
-        {
-          testKey: "ABC-123",
-          status: "PASS",
-          start: "1970-01-01T01:00:00+01:00",
-          finish: "1970-01-01T01:00:01+01:00",
-          iterations: [
-            {
-              parameters: [
-                { name: "iteration", value: "1" },
-                { name: "user", value: "alice" },
-                { name: "mail", value: "alice@example.net" },
-              ],
-              status: "PASS",
-              steps: [],
-            },
-            {
-              parameters: [
-                { name: "iteration", value: "2" },
-                { name: "user", value: "bob" },
-                { name: "mail", value: "bob@example.net" },
-                { name: "abc", value: "xyz" },
-              ],
-              status: "PASS",
-              steps: [],
-            },
-          ],
-          evidences: [],
-          comment: "",
-        },
-      ],
-    );
+
+    const actual = await convertToXrayJson(map, {
+      jiraType: "server",
+      receivedRegEx: /Received string: "(.*?)"(?=\n)/,
+      stepCategories: ["expect", "pw:api", "test.step"],
+    });
+    const expected = [
+      {
+        testKey: "ABC-123",
+        status: "PASS",
+        start: "1970-01-01T01:00:00+01:00",
+        finish: "1970-01-01T01:00:01+01:00",
+        iterations: [
+          {
+            parameters: [
+              { name: "iteration", value: "1" },
+              { name: "user", value: "alice" },
+              { name: "mail", value: "alice@example.net" },
+            ],
+            status: "PASS",
+            steps: [],
+          },
+          {
+            parameters: [
+              { name: "iteration", value: "2" },
+              { name: "user", value: "bob" },
+              { name: "mail", value: "bob@example.net" },
+              { name: "abc", value: "xyz" },
+            ],
+            status: "PASS",
+            steps: [],
+          },
+        ],
+        evidences: [],
+        comment: "",
+      },
+    ];
+    assert.deepStrictEqual(expected, actual);
   });
 
   await it("single data-driven test with attachment", async () => {
+    const expectedComment = fs.readFileSync("./src/comment2.txt", "utf-8");
     const map = new Map<string, TestResult[]>();
     map.set("ABC-123", [
       {
@@ -284,31 +432,32 @@ describe(convertToXrayJson.name, async () => {
         workerIndex: 0,
       },
     ]);
-    assert.deepStrictEqual(
-      await convertToXrayJson(map, {
-        jiraType: "cloud",
-        receivedRegEx: /Received string: "(.*?)"(?=\n)/,
-        stepCategories: ["expect", "pw:api", "test.step"],
-        uploadTrace: true,
-      }),
-      [
-        {
-          testKey: "ABC-123",
-          status: "PASSED",
-          start: "1970-01-01T00:00:00.000Z",
-          finish: "1970-01-01T00:00:05.000Z",
-          iterations: [
-            { parameters: [{ name: "iteration", value: "1" }], status: "PASSED", steps: [] },
-            { parameters: [{ name: "iteration", value: "2" }], status: "FAILED", steps: [] },
-          ],
-          evidence: [{ data: "aGVsbG8gd29ybGQ=", contentType: "text/plain", filename: "iteration_2_text-attachment.txt" }],
-          comment: `Iteration 2: [{"message":"Error: expect(received).toBe(expected) // Object.is equality\\n\\nExpected: false\\nReceived: true","stack":"Error: expect(received).toBe(expected) // Object.is equality\\n\\nExpected: false\\nReceived: true\\n    at /home/pw/tests/example.spec.ts:8:16","location":{"file":"/home/pw/tests/example.spec.ts","column":16,"line":8},"snippet":"   6 |\\n   7 | test('fails', async ({  }) => {\\n>  8 |   expect(true).toBe(false);\\n     |                ^\\n   9 | });\\n  10 |"}]`,
-        },
-      ],
-    );
+
+    const expected = [
+      {
+        testKey: "ABC-123",
+        status: "PASSED",
+        start: "1970-01-01T00:00:00.000Z",
+        finish: "1970-01-01T00:00:05.000Z",
+        iterations: [
+          { parameters: [{ name: "iteration", value: "1" }], status: "PASSED", steps: [] },
+          { parameters: [{ name: "iteration", value: "2" }], status: "FAILED", steps: [] },
+        ],
+        evidence: [{ data: "aGVsbG8gd29ybGQ=", contentType: "text/plain", filename: "iteration_2_text-attachment.txt" }],
+        comment: expectedComment,
+      },
+    ];
+    const actual = await convertToXrayJson(map, {
+      jiraType: "cloud",
+      receivedRegEx: /Received string: "(.*?)"(?=\n)/,
+      stepCategories: ["expect", "pw:api", "test.step"],
+      uploadTrace: true,
+    });
+    assert.deepStrictEqual(actual, expected);
   });
 
   await it("single test with retries", async () => {
+    const expectedComment = fs.readFileSync("./src/comment3.txt", "utf-8");
     const map = new Map<string, TestResult[]>();
     map.set("ABC-123", [
       {
@@ -451,31 +600,29 @@ describe(convertToXrayJson.name, async () => {
         errors: [],
       },
     ]);
-    assert.deepStrictEqual(
-      await convertToXrayJson(map, {
-        jiraType: "cloud",
-        receivedRegEx: /Received string: "(.*?)"(?=\n)/,
-        stepCategories: ["expect", "pw:api", "test.step"],
-      }),
-      [
-        {
-          testKey: "ABC-123",
-          status: "PASSED",
-          start: "2024-12-05T17:10:51.328Z",
-          finish: "2024-12-05T17:10:53.925Z",
-          iterations: [
-            { parameters: [{ name: "iteration", value: "1" }], status: "FAILED", steps: [] },
-            { parameters: [{ name: "iteration", value: "2" }], status: "FAILED", steps: [] },
-            { parameters: [{ name: "iteration", value: "3" }], status: "FAILED", steps: [] },
-            { parameters: [{ name: "iteration", value: "4" }], status: "PASSED", steps: [] },
-          ],
-          evidence: [],
-          comment:
-            `Iteration 1: [{"message":"Error: expect(received).toBe(expected) // Object.is equality\\n\\nExpected: false\\nReceived: true","stack":"Error: expect(received).toBe(expected) // Object.is equality\\n\\nExpected: false\\nReceived: true\\n    at /home/pw/tests/example.spec.ts:8:16","location":{"file":"/home/pw/tests/example.spec.ts","column":16,"line":8},"snippet":"   6 |\\n   7 | test('fails', async ({  }) => {\\n>  8 |   expect(true).toBe(false);\\n     |                ^\\n   9 | });\\n  10 |"}]\n` +
-            `Iteration 2: [{"message":"Error: expect(received).toBe(expected) // Object.is equality\\n\\nExpected: false\\nReceived: true","stack":"Error: expect(received).toBe(expected) // Object.is equality\\n\\nExpected: false\\nReceived: true\\n    at /home/pw/tests/example.spec.ts:8:16","location":{"file":"/home/pw/tests/example.spec.ts","column":16,"line":8},"snippet":"   6 |\\n   7 | test('fails', async ({  }) => {\\n>  8 |   expect(true).toBe(false);\\n     |                ^\\n   9 | });\\n  10 |"}]\n` +
-            `Iteration 3: [{"message":"Error: expect(received).toBe(expected) // Object.is equality\\n\\nExpected: false\\nReceived: true","stack":"Error: expect(received).toBe(expected) // Object.is equality\\n\\nExpected: false\\nReceived: true\\n    at /home/pw/tests/example.spec.ts:8:16","location":{"file":"/home/pw/tests/example.spec.ts","column":16,"line":8},"snippet":"   6 |\\n   7 | test('fails', async ({  }) => {\\n>  8 |   expect(true).toBe(false);\\n     |                ^\\n   9 | });\\n  10 |"}]`,
-        },
-      ],
-    );
+
+    const actual = await convertToXrayJson(map, {
+      jiraType: "cloud",
+      receivedRegEx: /Received string: "(.*?)"(?=\n)/,
+      stepCategories: ["expect", "pw:api", "test.step"],
+    });
+
+    const expected = [
+      {
+        testKey: "ABC-123",
+        status: "PASSED",
+        start: "2024-12-05T17:10:51.328Z",
+        finish: "2024-12-05T17:10:53.925Z",
+        iterations: [
+          { parameters: [{ name: "iteration", value: "1" }], status: "FAILED", steps: [] },
+          { parameters: [{ name: "iteration", value: "2" }], status: "FAILED", steps: [] },
+          { parameters: [{ name: "iteration", value: "3" }], status: "FAILED", steps: [] },
+          { parameters: [{ name: "iteration", value: "4" }], status: "PASSED", steps: [] },
+        ],
+        evidence: [],
+        comment: expectedComment,
+      },
+    ];
+    assert.deepStrictEqual(actual, expected);
   });
 });
