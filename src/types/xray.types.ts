@@ -1,4 +1,5 @@
 import type { AxiosProxyConfig } from "axios";
+import type { XrayFields } from "./cloud.types";
 
 type ServerWithToken = {
   token: string;
@@ -55,4 +56,12 @@ export interface XrayOptions {
   projectsToExclude?: string | string[];
   jiraXrayStatusMapping?: Partial<JiraXrayStatusMapping>;
   executedBy?: string;
+  useMultipart?: boolean;
+  multiPart: {
+    xrayFields?: XrayFields;
+    multiPartUrl?: string;
+    project?: { id: string };
+    issuetype?: { id: string };
+    components?: { name: string }[];
+  };
 }

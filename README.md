@@ -153,6 +153,15 @@ const config: PlaywrightTestConfig = {
         dryRun: false,
         runResult: true,
         projectsToExclude: ['setup', 'cleanup'],
+        useMultipart: true,
+        multiPart: {
+          multiPartUrl: "https://xray.cloud.getxray.app/",
+          project: { id: "101010" },
+          issuetype: { id: "10007" },
+          xrayFields: {
+            testPlanKey: "JIRA_CODE-XXX",
+          },
+        },
         jiraXrayStatusMapping: {
           passed: "PASS",
           failed: "FAIL",
@@ -213,6 +222,65 @@ const config: PlaywrightTestConfig = {
 };
 ```
 This configuration leaves all other statuses unchanged, relying on XRAY's default mappings.
+
+## Explain useMultipart and multiPart
+
+`useMultipart` is an optional flag that tells the reporter to use Xray Cloud’s multipart import API endpoint (`/api/v2/import/execution/multipart`) instead of the regular JSON import endpoint (`/api/v2/import/execution`).
+
+### When to use it
+- Use it when your Xray project needs to include components.
+- Only supported for Xray Cloud (`jira.type: "cloud"`).
+- If `useMultipart` is `true`, the reporter validates that `multiPart` contains the required fields.
+
+### Required `multiPart` fields
+- `multiPartUrl`: Base URL for Xray Cloud (e.g. `https://xray.cloud.getxray.app/`).
+- `project.id`: Jira project ID where the Test Execution ticket will be created.
+- `issuetype.id`: Issue type ID for the Test Execution issue.
+- `xrayFields`: Must include at least `testPlanKey` and optional `environments`.
+
+### Minimal example
+```ts
+useMultipart: true,
+multiPart: {
+  multiPartUrl: "https://xray.cloud.getxray.app/",
+  project: { id: "101010" },
+  issuetype: { id: "10007" },
+  xrayFields: {
+    testPlanKey: "JIRA_CODE-XXX",
+    environments: ["dev", "test"],
+  },
+}
+```
+
+If `useMultipart` is not set or is `false`, the reporter uses the standard `import/execution` JSON endpoint and does not require `multiPart`.
+
+### How to find project id? ###
+1. Open the project in Jira.
+2. Look at the browser URL — it usually looks like: 
+ ```https://yourcompany.atlassian.net/jira/software/c/projects/PROJ/boards/123```
+
+
+3. Replace /projects/PROJ with /rest/api/2/project/PROJ: 
+```https://yourcompany.atlassian.net/rest/api/2/project/PROJ```
+
+
+4. The browser will show JSON containing "id": "12345" — that’s the project ID.
+
+### How to find out the issue type of test execution? ###
+If you know a Test Execution issue key (example: ERP-1234):
+
+1. Open your browser to: 
+```https://<your-jira-domain>/rest/api/2/issue/ERP-1234```
+
+
+2. Search in the JSON for:
+```JSON
+"issuetype": {
+   "id": "10055",
+   "name": "Test Execution"
+}
+```
+This gives you the exact ID.
 
 
 ## Authentication to Jira XRAY server

@@ -3,6 +3,7 @@ import fs from "node:fs";
 import { describe, it } from "node:test";
 import type { TestResult } from "@playwright/test/reporter";
 import { convertToXrayJson } from "./convert.ts";
+import { convertToMultipart, verifyMultipatConfig } from "./convertToMultipart.ts";
 
 describe(convertToXrayJson.name, async () => {
   await it("single test", async () => {
@@ -40,6 +41,91 @@ describe(convertToXrayJson.name, async () => {
         },
       ],
     );
+  });
+
+  await it("Multipart test", async () => {
+    const testExecution = JSON.parse(fs.readFileSync("./src/multipart-test-execution.json", "utf-8"));
+    const expectedResult = JSON.parse(fs.readFileSync("./src/multipart-test-result.json", "utf-8"));
+    const multipartOptions = {
+      multiPartUrl: "https://xray.cloud.getxray.app/",
+      project: { id: "19960" },
+      issuetype: { id: "10055" },
+      components: [{ name: "TEST" }, { name: "TEST-2" }],
+    };
+    const actual = await convertToMultipart(testExecution, multipartOptions);
+    assert.deepStrictEqual(actual, expectedResult);
+  });
+
+  await it("Multipart settings xrayFields test", async () => {
+    const testConfig = {
+      jira: { url: "cloud", apiVersion: "q", type: "cloud" as const },
+      projectKey: "TEST",
+      testPlan: "",
+      debug: false,
+      multiPart: {
+        summary: "summary",
+        multiPartUrl: "url",
+        project: { id: "123" },
+        issuetype: { id: "10123055" },
+        components: [{ name: "TEST" }, { name: "TEST-2" }],
+      },
+    };
+
+    assert.throws(() => verifyMultipatConfig(testConfig), { message: "Multipart options must include xrayFields" });
+  });
+
+  await it("Multipart settings project test", async () => {
+    const testConfig = {
+      jira: { url: "cloud", apiVersion: "q", type: "cloud" as const },
+      projectKey: "TEST",
+      testPlan: "",
+      debug: false,
+      multiPart: {
+        summary: "summary",
+        multiPartUrl: "url",
+        issuetype: { id: "10123055" },
+        components: [{ name: "TEST" }, { name: "TEST-2" }],
+        xrayFields: {},
+      },
+    };
+
+    assert.throws(() => verifyMultipatConfig(testConfig), { message: "Multipart options must include project and issuetype" });
+  });
+
+  await it("Multipart settings issuetype test", async () => {
+    const testConfig = {
+      jira: { url: "cloud", apiVersion: "q", type: "cloud" as const },
+      projectKey: "TEST",
+      testPlan: "",
+      debug: false,
+      multiPart: {
+        summary: "summary",
+        multiPartUrl: "url",
+        project: { id: "123" },
+        components: [{ name: "TEST" }, { name: "TEST-2" }],
+        xrayFields: {},
+      },
+    };
+
+    assert.throws(() => verifyMultipatConfig(testConfig), { message: "Multipart options must include project and issuetype" });
+  });
+
+  await it("Multipart settings url test", async () => {
+    const testConfig = {
+      jira: { url: "cloud", apiVersion: "q", type: "cloud" as const },
+      projectKey: "TEST",
+      testPlan: "",
+      debug: false,
+      multiPart: {
+        summary: "summary",
+        issuetype: { id: "10123055" },
+        project: { id: "123" },
+        components: [{ name: "TEST" }, { name: "TEST-2" }],
+        xrayFields: {},
+      },
+    };
+
+    assert.throws(() => verifyMultipatConfig(testConfig), { message: "Multipart options must include multiPartUrl" });
   });
 
   await it("single test with attachment", async () => {
