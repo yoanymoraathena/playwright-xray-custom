@@ -16,7 +16,7 @@ export interface XrayTestResult {
 
 export interface XrayInfo {
   summary: string;
-  project: string;
+  project?: string;
   description?: string;
   version?: string;
   user?: string;
@@ -98,4 +98,33 @@ export interface XrayIterationParameter {
    * The parameter value.
    */
   value: string;
+}
+
+export interface XrayMultiPartInfo {
+  fields: Fields;
+  xrayFields: XrayFields;
+}
+
+export interface Fields {
+  project: Project;
+  summary: string;
+  issuetype: Issuetype;
+  components: Component[];
+}
+
+export interface Project {
+  id: string;
+}
+
+export interface Issuetype {
+  id: string;
+}
+
+export interface Component {
+  name: string;
+}
+
+export interface XrayFields {
+  testPlanKey?: string;
+  environments?: string[];
 }

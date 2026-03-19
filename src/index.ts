@@ -1,4 +1,4 @@
-import type { FullConfig, Reporter, Suite, TestCase, TestResult } from "@playwright/test/reporter";
+import type { FullConfig, FullResult, Reporter, Suite, TestCase, TestResult } from "@playwright/test/reporter";
 import { blue, bold, green, magenta, red, white, yellow } from "picocolors";
 import { convertToXrayJson } from "./convert";
 import Help from "./help";
@@ -14,7 +14,6 @@ class XrayReporter implements Reporter {
   private receivedRegEx: RegExp = /Received string: "(.*?)"(?=\n)/;
   private options: XrayOptions;
   private execInfo!: ExecInfo;
-  private totalDuration: number;
   private readonly defaultRunName = `[${new Date().toUTCString()}] - Automated run`;
   private help: Help;
   private uploadScreenShot: boolean | undefined;
@@ -23,15 +22,16 @@ class XrayReporter implements Reporter {
   private projectsToExclude: string | string[] | undefined;
   private stepCategories = ["expect", "pw:api", "test.step"];
   private readonly testsByKey: Map<string, TestResult[]>;
+  useMultipart: boolean | undefined;
 
   constructor(options: XrayOptions) {
     this.options = options;
     this.help = new Help(this.options.jira.type);
     this.xrayService = new XrayService(this.options);
-    this.totalDuration = 0;
     this.uploadScreenShot = options.uploadScreenShot;
     this.uploadTrace = options.uploadTrace;
     this.uploadVideo = options.uploadVideo;
+    this.useMultipart = options.useMultipart;
     this.stepCategories = options.stepCategories === undefined ? this.stepCategories : options.stepCategories;
     this.testsByKey = new Map();
     this.testResults = {
@@ -135,12 +135,11 @@ class XrayReporter implements Reporter {
     }
   }
 
-  async onEnd() {
+  async onEnd(result: FullResult) {
     // Update test Duration
     this.testResults.info.finishDate = this.help.getFormatData(
-      new Date(new Date(this.testResults?.info?.startDate ?? new Date()).getTime() + this.totalDuration),
+      new Date(new Date(this.testResults?.info?.startDate ?? new Date()).getTime() + result.duration),
     );
-
     this.testResults.tests = await convertToXrayJson(this.testsByKey, {
       receivedRegEx: this.receivedRegEx,
       stepCategories: this.stepCategories,

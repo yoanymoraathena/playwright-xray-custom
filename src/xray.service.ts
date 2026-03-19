@@ -1,7 +1,9 @@
 import * as fs from "node:fs";
 import { inspect } from "node:util";
 import axios, { type Axios } from "axios";
+import FormData from "form-data";
 import { blue, bold, green, red, white, yellow } from "picocolors";
+import { convertToMultipart, verifyMultipatConfig } from "./convertToMultipart";
 import Help from "./help";
 import type { XrayTest as XrayTestCloud, XrayTestResult as XrayTestResultCloud } from "./types/cloud.types";
 import type { ExecInfo } from "./types/execInfo.types";
@@ -46,6 +48,14 @@ export class XrayService {
 
     // Init axios instance
     this.axios = axios;
+
+    // Set if multipart should be used
+    if (options.useMultipart) {
+      if (this.type !== "cloud") {
+        throw new Error("Multipart upload is only supported for Xray Cloud");
+      }
+      verifyMultipatConfig(options);
+    }
 
     this.axios.defaults.headers.options = {
       "Content-Type": "application/json",
@@ -321,29 +331,19 @@ export class XrayService {
     if (!this.isXrayCloudAuthenticated && this.type === "cloud") {
       await this.initialzeJiraConnection(this.options);
     }
+
     this.trimEvidence(results);
     if (this.options.executedBy) {
       this.addExecutedBy(results.tests ?? []);
     }
-    const response = await this.axios.post(URL, JSON.stringify(results), {
-      maxBodyLength: 107374182400, //100gb
-      maxContentLength: 107374182400, //100gb
-      timeout: 600000, //10min
-      proxy: this.options.proxy !== undefined ? this.options.proxy : false,
-    });
-    if (response.status !== 200) throw new Error(`${response.status} - Failed to create test cycle`);
 
-    if ("testIssues" in response.data) {
-      if (response.data.testIssues?.error?.length > 0) {
-        throw new Error(
-          `Partial test reporting failure for the following tests: ${response.data.testIssues.error.map((e: { testKey: string }) => e.testKey).join(", ")}`,
-        );
-      }
-    }
-
-    let key = response.data.key;
-    if (this.options.jira.type === "server") {
-      key = response.data.testExecIssue.key;
+    let key = "";
+    if (this.options.useMultipart && this.type === "cloud") {
+      const multiPartUrl = `${this.options.multiPart.multiPartUrl + (this.options.multiPart.multiPartUrl?.endsWith("/") ? "" : "/")}api/${this.apiVersion}/import/execution/multipart`;
+      const multipartFiles = await convertToMultipart(results as XrayTestResultCloud, this.options.multiPart);
+      key = await sendMultpartToXray(this.axios, multipartFiles, multiPartUrl);
+    } else {
+      key = await sendSinglePartToXray(this.axios, URL, results, this.options);
     }
     return key;
   }
@@ -383,3 +383,50 @@ export class XrayService {
   }
 }
 const byteSize = (str: BlobPart) => new Blob([str]).size;
+
+async function sendMultpartToXray(axios: Axios, multipartFiles: { info: string; testResult: string }, url: string) {
+  const formData = new FormData();
+
+  formData.append("info", multipartFiles.info, {
+    filename: "info.json",
+    contentType: "application/json",
+  });
+  formData.append("results", multipartFiles.testResult, {
+    filename: "results.json",
+    contentType: "application/json",
+  });
+
+  const resp = await axios.post(url, formData, {
+    headers: { ...formData?.getHeaders() },
+    maxBodyLength: 107374182400, //100gb
+    maxContentLength: 107374182400, //100gb
+    timeout: 600000, //10min
+  });
+
+  if (resp.status !== 200) throw new Error(`${resp.status} - Failed to import test execution results to Xray`);
+  return resp.data.key;
+}
+
+async function sendSinglePartToXray(axios: Axios, url: string, results: XrayTestResult, options: XrayOptions) {
+  const response = await axios.post(url, JSON.stringify(results), {
+    maxBodyLength: 107374182400, //100gb
+    maxContentLength: 107374182400, //100gb
+    timeout: 600000, //10min
+    proxy: options.proxy !== undefined ? options.proxy : false,
+  });
+  if (response.status !== 200) throw new Error(`${response.status} - Failed to create test cycle`);
+
+  if ("testIssues" in response.data) {
+    if (response.data.testIssues?.error?.length > 0) {
+      throw new Error(
+        `Partial test reporting failure for the following tests: ${response.data.testIssues.error.map((e: { testKey: string }) => e.testKey).join(", ")}`,
+      );
+    }
+  }
+
+  let key = response.data.key;
+  if (options.jira.type === "server") {
+    key = response.data.testExecIssue.key;
+  }
+  return key;
+}

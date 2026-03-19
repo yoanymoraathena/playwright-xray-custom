@@ -1,0 +1,4 @@
+{
+  "info": "{\"fields\":{\"project\":{\"id\":\"19960\"},\"summary\":\"[Thu, 12 Mar 2026 12:24:32 GMT] - Automated run\",\"issuetype\":{\"id\":\"10055\"},\"components\":[{\"name\":\"TEST\"},{\"name\":\"TEST-2\"}]},\"xrayFields\":{\"testPlanKey\":\"PWXR-1\",\"environments\":[]}}",
+  "testResult": "{\"testExecutionKey\":\"undefined\",\"info\":{\"summary\":\"[Thu, 12 Mar 2026 12:24:32 GMT] - Automated run\",\"startDate\":\"2026-03-12T12:24:32.754Z\",\"finishDate\":\"2026-03-12T12:24:32.754Z\",\"testPlanKey\":\"PWXR-1\",\"revision\":null,\"description\":null,\"testEnvironments\":null,\"version\":null},\"tests\":[{\"status\":\"PASSED\",\"testKey\":\"PWXR-3\",\"evidence\":[],\"start\":\"2026-03-12T12:24:36.649Z\",\"finish\":\"2026-03-12T12:24:37.924Z\",\"comment\":null,\"steps\":[{\"status\":\"PASSED\",\"comment\":\"\",\"actualResult\":\"\"},{\"status\":\"PASSED\",\"comment\":\"\",\"actualResult\":\"\"}]}]}"
+}
