@@ -23,8 +23,9 @@ export interface XrayInfo {
   revision?: string;
   startDate: string;
   finishDate: string;
-  testPlanKey: string;
+  testPlanKey?: string;
   testEnvironments?: object;
+  [key: string]: any;
 }
 
 export interface XrayTest {

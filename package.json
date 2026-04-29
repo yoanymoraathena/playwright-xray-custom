@@ -1,7 +1,7 @@
 {
-  "name": "playwright-xray",
+  "name": "@yoanymoraathena/playwright-xray-custom",
   "version": "0.6.24",
-  "description": "XRAY reporter for the Playwright",
+  "description": "Fork of XRAY reporter for the Playwright with optional parameter that allows to create a Test Execution record without specified fields",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "files": [
@@ -21,7 +21,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/inluxc/playwright-xray.git"
+    "url": "git+https://github.com/yoanymoraathena/playwright-xray-custom.git"
   },
   "keywords": [
     "playwright",
@@ -33,9 +33,9 @@
   "author": "Fúlvio Carvalhido <inluxc@gmail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/inluxc/playwright-xray/issues"
+    "url": "https://github.com/yoanymoraathena/playwright-xray-custom.git/issues"
   },
-  "homepage": "https://github.com/inluxc/playwright-xray#readme",
+  "homepage": "https://github.com/yoanymoraathena/playwright-xray-custom.git#readme",
   "devDependencies": {
     "@biomejs/biome": "2.2.4",
     "@playwright/test": "^1.30.0",
