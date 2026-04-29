@@ -1,3 +1,15 @@
+## ⚠️ This is a fork
+
+This project is a fork of:
+https://github.com/inluxc/playwright-xray
+
+Original author: Fúlvio Carvalhido
+
+Changes in this fork:
+- The project accept a new parameter `fieldsToExclude` inside the `playwright config file` that indicates which fields are not going to be sent to Jira to create the test execution record
+
+This fork is maintained independently and is not affiliated with the original project.
+
 # Xray reporter for Playwright
 
 Publish Playwright test run on Xray
@@ -11,7 +23,7 @@ Thanks Yevhen for the great contribution
 ## Install
 
 ```sh
-npm i -D playwright-xray
+npm i -D playwright-xray-custom
 ```
 
 ## Usage
@@ -168,7 +180,8 @@ const config: PlaywrightTestConfig = {
           skipped: "SKIPPED",
           timedOut: "FAIL",
           interrupted: "ABORTED",
-        }
+        },
+        fieldsToExclude: [field1, field2, ...]
       },
     ],
   ],
