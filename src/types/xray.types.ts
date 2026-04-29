@@ -64,4 +64,5 @@ export interface XrayOptions {
     issuetype?: { id: string };
     components?: { name: string }[];
   };
+  fieldsToExclude?: string[];
 }

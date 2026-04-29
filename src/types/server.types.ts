@@ -23,6 +23,7 @@ export interface XrayInfo {
   revision: string;
   startDate: string;
   finishDate: string;
+  [key: string]: any;
 }
 
 export interface XrayTest {

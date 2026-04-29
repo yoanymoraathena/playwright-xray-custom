@@ -5,7 +5,7 @@ import FormData from "form-data";
 import { blue, bold, green, red, white, yellow } from "picocolors";
 import { convertToMultipart, verifyMultipatConfig } from "./convertToMultipart";
 import Help from "./help";
-import type { XrayTest as XrayTestCloud, XrayTestResult as XrayTestResultCloud } from "./types/cloud.types";
+import type { XrayInfo, XrayTest as XrayTestCloud, XrayTestResult as XrayTestResultCloud } from "./types/cloud.types";
 import type { ExecInfo } from "./types/execInfo.types";
 import type { XrayTestResult as XrayTestResultServer, XrayTest as XrayTestServer } from "./types/server.types";
 import type { XrayOptions } from "./types/xray.types";
@@ -25,6 +25,7 @@ export class XrayService {
   private runResult: boolean;
   private limitEvidenceSize: number;
   private isXrayCloudAuthenticated = false;
+  private fieldsToExclude: string[] | undefined;
 
   constructor(options: XrayOptions) {
     // Init vars
@@ -33,7 +34,7 @@ export class XrayService {
     this.dryRun = options.dryRun === true;
     this.runResult = options.runResult === true;
     this.limitEvidenceSize = options.limitEvidenceSize === undefined ? 104857600 : options.limitEvidenceSize;
-
+    this.fieldsToExclude = options.fieldsToExclude;
     // Set Jira URL
     if (!options.jira.url) throw new Error('"jira.url" option is missed. Please, provide it in the config');
     this.jira = options.jira.url;
@@ -73,13 +74,20 @@ export class XrayService {
     if (!options.projectKey) throw new Error('"projectKey" option is missed. Please, provide it in the config');
 
     // Set Test Plan
-    if (!options.testPlan) throw new Error('"testPlan" option are missed. Please provide them in the config');
+    if (!options.testPlan && this.fieldsToExclude?.indexOf('testPlan') === -1) throw new Error('"testPlan" option are missed. Please provide them in the config');
+  }
+
+  removeExcludedFields(testResultsInfo: XrayInfo, fieldsToExclude: string[]) {
+    fieldsToExclude.forEach((field) => {
+        delete testResultsInfo[field];
+    });
   }
 
   async createRun(results: XrayTestResult, execInfo: ExecInfo) {
     const URL = `${this.requestUrl}/import/execution`;
     const total = results.tests?.length;
     const duration = new Date(results.info.finishDate).getTime() - new Date(results.info.startDate).getTime();
+    if (this.fieldsToExclude) this.removeExcludedFields(results.info, this.fieldsToExclude);
     let passed = 0;
     let failed = 0;
     let flaky = 0;
